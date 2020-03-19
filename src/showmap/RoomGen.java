@@ -1,0 +1,183 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package showmap;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Random;
+
+/**
+ *
+ * @author 9087
+ */
+public class RoomGen {
+    
+    int[][][][] roomMap;
+    Random rand;
+    
+    int playerStartRoomX;
+    int playerStartRoomY;
+    
+    public RoomGen() {
+        roomMap = new int[5][5][][];
+        rand = new Random();
+        generate();
+    }
+
+    private void generate() {
+       
+        int startX = rand.nextInt(4);
+        int startY = rand.nextInt(4);
+
+        playerStartRoomX = startX;
+        playerStartRoomY = startY;
+        roomMap[startY][startX] = new int[10][10]; //create an empty room here
+        fillFloor(startX, startY);
+        generateRoom(startX, startY); 
+    }
+    
+    void printRooms() {
+        for (int w = 0; w < 5; w++) {
+            for (int h = 0; h < 5; h++) {
+                printRoom(w, h); //will mess up drawing
+            }
+        }
+    }
+
+    void printRoom(int startY, int startX) {
+        for (int w = 0; w < 10; w++) {
+            for (int h = 0; h < 10; h++) {
+                System.out.print(roomMap[startY][startX][h][w]);
+            }
+            System.out.println("");
+        }
+        System.out.println("");
+    }
+
+    private void fillFloor(int startX, int startY) {
+        
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
+                if (x == 0 || y == 0 || x == 9 || y == 9) { //wall
+                    roomMap[startY][startX][y][x] = 1;
+                } else {
+                    roomMap[startY][startX][y][x] = 0;
+                }
+            }
+        }
+
+        //randomly place obstacles in 7*7 square
+        for (int i = 0; i < 10; i++) {
+            int x = rand.nextInt(5) + 2;
+            int y = rand.nextInt(5) + 2;
+            roomMap[startY][startX][y][x] = 2;
+        }
+        
+    }
+
+    private void generateRoom(int startX, int startY) {
+//        Randomises directions for the cells
+        Direction[] neighbourDirections = Direction.values();
+        Collections.shuffle(Arrays.asList(neighbourDirections));
+        //System.out.println("After:" + Arrays.toString(neighbourDirections));
+
+        for (Direction d : neighbourDirections) {
+
+            int newRoomY = startY + d.shiftY;
+            int newRoomX = startX + d.shiftX;
+            if (validRoom(newRoomX, newRoomY)) { // room co-ordinates are within range
+
+                if (roomMap[newRoomY][newRoomX] == null) { // no room generated in this direction
+                    //System.out.println("no Room in " + newRoomX + " " + newRoomY);
+                    roomMap[newRoomY][newRoomX] = new int[10][10]; //create an empty room here
+                    fillFloor(newRoomX, newRoomY); //fill the floor and build 4 walls
+
+                    //get door position in wall
+                    int doorPos = rand.nextInt(3) + 3;
+
+                    // add door in right wall of currentRoom and left wall of new room
+                    if (d.getDirection() == Direction.RIGHT) {
+                        //System.out.println("RIGHT");
+                        roomMap[startY][startX][doorPos][9] = 3; //draw door in wall of original room
+                        roomMap[newRoomY][newRoomX][doorPos][0] = 3;
+                        
+                        //printRoom(startY, startX);
+                        //System.out.println("");
+
+                        generateRoom(newRoomX, newRoomY);
+                    }
+                    if (d.getDirection() == Direction.LEFT) {
+                        //System.out.println("LEFT");
+                        roomMap[startY][startX][doorPos][0] = 3;
+                        roomMap[newRoomY][newRoomX][doorPos][9] = 3;
+
+                        //printRoom(startY, startX);
+                        //System.out.println("");
+
+                        generateRoom(newRoomX, newRoomY);
+                    }
+                    if (d.getDirection() == Direction.UP) {
+                        //System.out.println("UP");
+                        roomMap[startY][startX][0][doorPos] = 3;
+                        roomMap[newRoomY][newRoomX][9][doorPos] = 3;
+
+                        //printRoom(startY, startX);
+                        //System.out.println("");
+
+                        generateRoom(newRoomX, newRoomY);
+                    }
+                    if (d.getDirection() == Direction.DOWN) {
+                        //System.out.println("DOWN");
+                        roomMap[startY][startX][9][doorPos] = 3;
+                        roomMap[newRoomY][newRoomX][0][doorPos] = 3;
+
+                        //printRoom(startY, startX);
+                        //System.out.println("");
+
+                        generateRoom(newRoomX, newRoomY);
+                    }
+
+                }
+
+            }
+
+        }      
+    }
+    
+    private enum Direction {
+        UP(-1, 0, 0), RIGHT(0, 1, 1), DOWN(1, 0, 2), LEFT(0, -1, 3);
+
+        private int shiftX, shiftY; //Links to all the first parameters of the constant
+        private int neighbourOpposingPosition; //Flips the direction to break the other wall
+        private Direction opposite;
+
+        static {
+            UP.opposite = DOWN;
+            DOWN.opposite = UP;
+            LEFT.opposite = RIGHT;
+            RIGHT.opposite = LEFT;
+        }
+
+        private Direction(int shiftY, int shiftX, int neighbourPosition) {
+            this.shiftX = shiftX;
+            this.shiftY = shiftY;
+
+            this.neighbourOpposingPosition = neighbourPosition;
+        }
+
+        public Direction getDirection() {
+            return opposite.opposite;
+        }
+    }
+    
+    private boolean validRoom(int newRoomX, int newRoomY) {
+        if ((newRoomX < 0 || newRoomX > 4) || (newRoomY < 0 || newRoomY > 4)) {
+            return false;
+        }
+        return true;
+    }
+    
+}
