@@ -20,6 +20,7 @@ public class MapCreation extends Entity{
     Pane root;
     
     ArrayList<Node> walls;
+    ArrayList<Enemy> enemies;
     
     int currentRoomX;
     int currentRoomY;
@@ -30,6 +31,7 @@ public class MapCreation extends Entity{
         gen = new RoomGen();
         this.root = root;
         walls = new ArrayList();
+        enemies = new ArrayList();
         
         System.out.println("\n\nPRINT FROM MAP CREATION");
         gen.printRooms();
@@ -61,6 +63,11 @@ public class MapCreation extends Entity{
                         Node door = createEntity(w * 64, h * 64, 64, 64, Color.GOLD, root);
                         
                         break;
+                    case 4:
+                        //enemy
+                        Enemy enemy = new Enemy(w * 64, h * 64, root, walls);
+                        enemies.add(enemy);
+                        break;
                 }
             }
         }       
@@ -72,14 +79,16 @@ public class MapCreation extends Entity{
         currentRoomX--;
         root.getChildren().clear();
         walls.clear();
-        //createRoom();
+        enemies.clear();
+        createRoom();
     }
     
     public void goneRight(){
         currentRoomX++;
         root.getChildren().clear();
         walls.clear();
-        //createRoom();
+        enemies.clear();
+        createRoom();
     }
     
     public void goneUp(){
@@ -87,14 +96,16 @@ public class MapCreation extends Entity{
         currentRoomY--;
         root.getChildren().clear();
         walls.clear();
-        //createRoom();
+        enemies.clear();
+        createRoom();
     }
     
     public void goneDown(){
         currentRoomY++;
         root.getChildren().clear();
         walls.clear();
-        //createRoom();
+        enemies.clear();
+        createRoom();
     }
     
 }

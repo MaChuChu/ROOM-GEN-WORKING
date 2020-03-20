@@ -75,6 +75,12 @@ public class RoomGen {
             int y = rand.nextInt(5) + 2;
             roomMap[startY][startX][y][x] = 2;
         }
+        //Enemies
+        for (int i = 0; i < 5; i++) {
+            int x = rand.nextInt(7) + 2;
+            int y = rand.nextInt(7) + 2;
+            roomMap[startY][startX][y][x] = 4;
+        }
         
     }
 

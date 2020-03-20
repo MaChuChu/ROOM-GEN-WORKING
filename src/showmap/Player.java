@@ -21,19 +21,22 @@ public class Player extends Entity {
 
     Node player;
     int width, height;
-    Pane gameRoot;
+    Pane root;
     HashMap<KeyCode, Boolean> keys;
 
     MapCreation map;
+    ArrayList<Bullet> bullets;
 
-    Player(Pane gameRoot, HashMap<KeyCode, Boolean> keys, MapCreation map) {
+    Player(Pane root, HashMap<KeyCode, Boolean> keys, MapCreation map) {
         this.keys = keys;
         this.map = map;
-        this.gameRoot = gameRoot;
+        this.root = root;
 
         width = 40;
         height = 40;
-        player = createEntity(100, 100, width, height, Color.AQUA, gameRoot);
+        player = createEntity(100, 100, width, height, Color.AQUA, root);
+        
+        bullets = new ArrayList();
     }
 
     public Boolean isPressed(KeyCode key) {
@@ -97,17 +100,39 @@ public class Player extends Entity {
             player.setTranslateY(player.getTranslateY() + (movingDown ? 1 : -1));
         }
     }
+    
+    public void shootBullet(int mouseX, int mouseY) {
+        Bullet bullet = new Bullet((int) player.getTranslateX(), (int) player.getTranslateY(), mouseX, mouseY, root, map);
+        bullets.add(bullet);
+    }
+    
+    public void bulletMove(ArrayList<Enemy> enemies) {
 
-
-    void collideDoor(){
-        int roomPlayerX = (int) player.getTranslateX()/64;
-        int roomPlayerY = (int) player.getTranslateY()/64;
-        
-        for (int i = 0; i < 10; i++) {
-            //TOP DOOR
-            if (map.gen.roomMap[map.currentRoomY][map.currentRoomY][roomPlayerX][roomPlayerY] == 3) {
-            
+        for (Iterator<Bullet> iterator = bullets.iterator(); iterator.hasNext();) {
+            Bullet bullet = iterator.next();
+            for (Iterator<Node> iteratorWall = map.walls.iterator(); iteratorWall.hasNext();) {
+                Node wall = iteratorWall.next();
+                if (bullet.bullet.getBoundsInParent().intersects(wall.getBoundsInParent())) {
+                    root.getChildren().remove(bullet.bullet);
+                    iterator.remove();
+                    break;
+                }
+                
             }
+            
+            for (Iterator<Enemy> iteratorEnemy = bullet.map.enemies.iterator(); iteratorEnemy.hasNext();) {
+                Enemy enemy = iteratorEnemy.next();
+                if (bullet.bullet.getBoundsInParent().intersects(enemy.enemy.getBoundsInParent())) {
+                    root.getChildren().remove(enemy.enemy);
+                    iteratorEnemy.remove();
+                    
+                    root.getChildren().remove(bullet.bullet);
+                    iterator.remove();
+                    
+                    break;
+                }
+            }
+            bullet.move(enemies);
         }
 
     }
